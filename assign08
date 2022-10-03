@@ -1,0 +1,143 @@
+const express = require('express');
+const app = express();
+const port = 3000;
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
+var validator = require('validator');
+
+const mariadb = require('mariadb');
+const pool = mariadb.createPool({
+  host: 'localhost',
+  user: 'root',
+  password: 'root',
+  database: 'sample',
+  port: 3306,
+  connectionLimit: 5
+});
+
+const options = {
+   swaggerDefinition: {
+       info: {
+        title: 'Students and Customers',
+        version: '1.0.0',
+        description: 'REST API endpoints' 
+      },
+      host: 'localhost:3000',
+      basepath: '/',
+   },
+   apis: ['./server.js'],
+};
+
+const specs = swaggerJsdoc(options);
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(specs));
+app.use(cors());
+
+  /**
+   * @swagger
+   * /students:
+   *       get:
+   * description: this should return all students
+   */
+
+app.get('/students', (req, res) => {
+         const students = await mariadb.pool.query("select * from student");
+  res.setHeader('Content-Type', 'application/json');
+         res.json(students);
+});
+
+   /**
+   * @swagger
+   * /agents:
+   *     get:
+   * description: this should return all agents 
+   */
+
+app.get('/agents', (req, res) => {
+         const agents = await mariadb.pool.query("select * from agents");
+  res.setHeader('Content-Type', 'application/json');
+         res.json(agents);
+});
+
+
+   /**
+   * @swagger
+   * /company:
+   *      get:
+   * description: this should return all companies 
+   */
+
+app.get('/company', (req, res) => {
+         const companies = await mariadb.pool.query("select * from company");
+  res.setHeader('Content-Type', 'application/json');
+         res.json(companies);
+});
+
+
+   /**
+   * @swagger
+   * /addCompany:
+   *      post:
+   * description: adds a company
+   */
+app.post('/addCompany', async (req, res) => {
+    try {
+        const result = await mariadb.pool.query("insert into company (`COMPANY_ID`, `COMPANY_NAME`, `COMPANY_CITY`) values ('18', 'Dole Logistics', 'Miami\r')");
+        res.send(result);
+    } catch (err) {
+        throw err;
+    }
+});
+
+
+  /**
+   * @swagger
+   * /updateCustomer:
+   *      put:
+   * description: updates a customer
+   */
+app.put('/updateCustomer', async (req, res) => {
+    try {
+        const result = await db.pool.query("update customer set CUST_NAME = 'James' where CUST_CODE='C00013'");
+        res.send(result);
+    } catch (err) {
+        throw err;
+    } 
+});
+
+
+ /**
+   * @swagger
+   * /renameCustomer:
+   *      patch:
+   * description: renames a customer
+   */
+app.patch('/renameCustomer', async (req, res) => {
+    try {
+        const result = await db.pool.query("update customer set CUST_NAME = 'Adams' where CUST_CODE='C00001'");
+        res.send(result);
+    } catch (err) {
+        throw err;
+    } 
+});
+  /**
+   * @swagger
+   * /deleteFood:
+   *      delete:
+   * description: delets a food item
+   */
+app.delete('/deleteFood', async (req, res) => {
+    try {
+        const result = await db.pool.query("delete from foods where ITEM_ID = '1'");
+        res.send(result);
+    } catch (err) {
+        throw err;
+    } 
+});
+
+
+
+
+app.listen(port, () => {
+  console.log('Example app listening at http://localhost:${port}')
+})
